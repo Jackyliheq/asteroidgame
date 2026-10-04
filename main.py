@@ -6,6 +6,7 @@ from asteroidfield import AsteroidField
 import sys
 from shot import Shot
 from explosion import Explosion
+from background import SpaceBackground
 
 def main():
     print(f"Starting Asteroids with pygame version: {pygame.version.ver}")
@@ -15,6 +16,7 @@ def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
+    background = SpaceBackground(SCREEN_WIDTH, SCREEN_HEIGHT)
     dt = 0.0
     
     updatable = pygame.sprite.Group()
@@ -58,7 +60,7 @@ def main():
                     asteroid.split()
                     break
     
-        screen.fill("black")
+        background.draw(screen)
 
         score_text = font.render(f"Score: {score}", True, "white")
         screen.blit(score_text, (20, 20))
