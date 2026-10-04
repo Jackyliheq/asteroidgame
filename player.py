@@ -17,6 +17,38 @@ class Player(CircleShape):
         b = self.position - forward * self.radius - right
         c = self.position - forward * self.radius + right
         return [a, b, c]
+
+    def collides_with(self, other: CircleShape) -> bool:
+        points = self.triangle()
+        if self._point_in_triangle(other.position, points):
+            return True
+
+        for start, end in zip(points, points[1:] + points[:1]):
+            edge = end - start
+            edge_length_squared = edge.length_squared()
+            if edge_length_squared == 0:
+                closest_point = start
+            else:
+                projection = (other.position - start).dot(edge) / edge_length_squared
+                projection = max(0, min(1, projection))
+                closest_point = start + edge * projection
+
+            if other.position.distance_to(closest_point) < other.radius:
+                return True
+
+        return False
+
+    @staticmethod
+    def _point_in_triangle(
+        point: pygame.Vector2, triangle: list[pygame.Vector2]
+    ) -> bool:
+        signs = []
+        for start, end in zip(triangle, triangle[1:] + triangle[:1]):
+            edge = end - start
+            offset = point - start
+            signs.append(edge.x * offset.y - edge.y * offset.x)
+
+        return not (any(sign < 0 for sign in signs) and any(sign > 0 for sign in signs))
     
     def draw(self, screen: pygame.Surface) -> None:
         pygame.draw.polygon(screen, "white", self.triangle(), LINE_WIDTH)
