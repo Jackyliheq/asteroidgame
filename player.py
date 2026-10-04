@@ -9,7 +9,6 @@ class Player(CircleShape):
         self.rotation = 0
         self.shoot_timer = 0.0 
     
-    # in the Player class
     def triangle(self) -> list[pygame.Vector2]:
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
         right = pygame.Vector2(0, 1).rotate(self.rotation + 90) * self.radius / 1.5
@@ -49,9 +48,38 @@ class Player(CircleShape):
             signs.append(edge.x * offset.y - edge.y * offset.x)
 
         return not (any(sign < 0 for sign in signs) and any(sign > 0 for sign in signs))
-    
+
+    def spaceship(self) -> list[pygame.Vector2]:
+        forward = pygame.Vector2(0, 1).rotate(self.rotation)
+        right = pygame.Vector2(0, 1).rotate(self.rotation + 90)
+        radius = self.radius
+
+        return [
+            self.position + forward * radius,
+            self.position + forward * radius * 0.15 + right * radius * 0.9,
+            self.position - forward * radius * 0.75 + right * radius * 0.55,
+            self.position - forward * radius,
+            self.position - forward * radius * 0.75 - right * radius * 0.55,
+            self.position + forward * radius * 0.15 - right * radius * 0.9,
+        ]
+
     def draw(self, screen: pygame.Surface) -> None:
-        pygame.draw.polygon(screen, "white", self.triangle(), LINE_WIDTH)
+        forward = pygame.Vector2(0, 1).rotate(self.rotation)
+        right = pygame.Vector2(0, 1).rotate(self.rotation + 90)
+        ship = self.spaceship()
+        cockpit = [
+            self.position + forward * self.radius * 0.55,
+            self.position + forward * self.radius * 0.05 + right * self.radius * 0.28,
+            self.position + forward * self.radius * 0.05 - right * self.radius * 0.28,
+        ]
+        engine_left = self.position - forward * self.radius * 0.9 + right * self.radius * 0.35
+        engine_right = self.position - forward * self.radius * 0.9 - right * self.radius * 0.35
+
+        pygame.draw.polygon(screen, (55, 95, 145), ship)
+        pygame.draw.polygon(screen, "white", ship, LINE_WIDTH)
+        pygame.draw.polygon(screen, (120, 210, 240), cockpit)
+        pygame.draw.line(screen, (255, 170, 45), engine_left, engine_left - forward * self.radius * 0.45, LINE_WIDTH)
+        pygame.draw.line(screen, (255, 170, 45), engine_right, engine_right - forward * self.radius * 0.45, LINE_WIDTH)
         
     def rotate(self, dt: float) -> None:
         self.rotation += PLAYER_TURN_SPEED * dt
@@ -75,15 +103,16 @@ class Player(CircleShape):
     def update(self, dt: float) -> None:
         keys = pygame.key.get_pressed()
 
-        if keys[pygame.K_a]:
-            self.rotate(-dt)
-        if keys[pygame.K_d]:
-            self.rotate(dt)
+        mouse_position = pygame.Vector2(pygame.mouse.get_pos())
+        aim_direction = mouse_position - self.position
+        if aim_direction.length_squared() > 0:
+            self.rotation = pygame.Vector2(0, 1).angle_to(aim_direction)
+
         if keys[pygame.K_w]:
             self.move(dt)
         if keys[pygame.K_s]:
             self.move(-dt)
-        if keys[pygame.K_SPACE]:
+        if pygame.mouse.get_pressed()[0]:
             self.shoot()
             
         if self.shoot_timer > 0:

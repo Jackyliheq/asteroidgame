@@ -23,3 +23,8 @@ class SpaceBackground:
         screen.fill((5, 8, 20))
         for position, size, color in self.stars:
             pygame.draw.circle(screen, color, position, size)
+
+    def update(self, dt: float) -> None:
+        for position, _, _ in self.stars:
+            position.x = (position.x + 8 * dt) % self.size[0]
+            position.y = (position.y + 18 * dt) % self.size[1]
